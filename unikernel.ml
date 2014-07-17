@@ -33,7 +33,9 @@ struct
       | `Error _ ->
           C.log_s c "- upgrade error" >> TCP.close tcp
       | `Ok tls  ->
-          C.log_s c "+ upgrade ok" >> reply c tls
+          C.log_s c "+ upgrade ok" >>
+          reply c tls >> TLS.close tls >>
+          C.log_s c ". reply sent"
 
   let port = try int_of_string Sys.argv.(1) with _ -> 4433
   let cert = try `Name Sys.argv.(2) with _ -> `Default
