@@ -3,7 +3,18 @@ open Mirage
 let data_dir = "data"
 
 let disk  = direct_kv_ro data_dir
-and stack = socket_stackv4 default_console [Ipaddr.V4.any]
+
+let net =
+  try match Sys.getenv "NET" with
+    | "direct" -> `Direct
+    | "socket" -> `Socket
+  with Not_found -> `Socket
+
+
+let stack console =
+  match net with
+    | `Direct -> direct_stackv4_with_default_ipv4 console tap0
+    | `Socket -> socket_stackv4 console [Ipaddr.V4.any]
 
 let server = foreign "Unikernel.Main" @@ console @-> stackv4 @-> entropy @-> kv_ro @-> job
 
@@ -20,4 +31,4 @@ let () =
     "tls"; "tls.mirage";
     "tcpip.channel";
   ] ;
-  register "tls-server" [ server $ default_console $ stack $ default_entropy $ disk ]
+  register "tls-server" [ server $ default_console $ stack default_console $ default_entropy $ disk ]
