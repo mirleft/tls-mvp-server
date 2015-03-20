@@ -22,16 +22,18 @@ module Main (C  : CONSOLE)
 struct
 
   module TCP  = S.TCPV4
-  module TLS  = Tls_mirage.Make_flow (TCP) (E)
+  module TLS  = Tls_mirage.Make (TCP) (E)
   module X509 = Tls_mirage.X509 (KV) (Clock)
 
   let reply c tls =
     TLS.write tls @@ resp "## We get signal."
 
   let upgrade c conf tcp =
-    TLS.server_of_tcp_flow conf tcp >>= function
+    TLS.server_of_flow conf tcp >>= function
       | `Error _ ->
           C.log_s c "- upgrade error" >> TCP.close tcp
+      | `Eof ->
+          C.log_s c "- end of file while upgrading" >> TCP.close tcp
       | `Ok tls  ->
           C.log_s c "+ upgrade ok" >>
           reply c tls >> TLS.close tls >>
@@ -43,7 +45,7 @@ struct
   let start c stack e kv =
     lwt ()   = TLS.attach_entropy e in
     lwt cert = X509.certificate kv cert in
-    let conf = Tls.Config.server ~certificate:cert () in
+    let conf = Tls.Config.server ~certificates:(`Single cert) () in
     S.listen_tcpv4 stack port (upgrade c conf) ;
     S.listen stack
 
