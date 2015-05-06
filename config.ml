@@ -16,19 +16,17 @@ let stack console =
     | `Direct -> direct_stackv4_with_default_ipv4 console tap0
     | `Socket -> socket_stackv4 console [Ipaddr.V4.any]
 
-let server = foreign "Unikernel.Main" @@ console @-> stackv4 @-> entropy @-> kv_ro @-> job
+let server = foreign "Unikernel.Main" @@ console @-> stackv4 @-> kv_ro @-> job
 
 let () =
   add_to_opam_packages [
     "mirage-clock-unix" ;
-    "mirage-entropy-unix" ;
     "tls" ;
     "tcpip" ;
   ] ;
   add_to_ocamlfind_libraries [
     "mirage-clock-unix" ;
-    "mirage-entropy-unix" ;
     "tls"; "tls.mirage";
     "tcpip.channel";
   ] ;
-  register "tls-server" [ server $ default_console $ stack default_console $ default_entropy $ disk ]
+  register "tls-server" [ server $ default_console $ stack default_console $ disk ]

@@ -17,12 +17,11 @@ let resp meat =
 
 module Main (C  : CONSOLE)
             (S  : STACKV4)
-            (E  : ENTROPY)
             (KV : KV_RO) =
 struct
 
   module TCP  = S.TCPV4
-  module TLS  = Tls_mirage.Make (TCP) (E)
+  module TLS  = Tls_mirage.Make (TCP)
   module X509 = Tls_mirage.X509 (KV) (Clock)
 
   let reply c tls =
@@ -42,8 +41,7 @@ struct
   let port = try int_of_string Sys.argv.(1) with _ -> 4433
   let cert = try `Name Sys.argv.(2) with _ -> `Default
 
-  let start c stack e kv =
-    lwt ()   = TLS.attach_entropy e in
+  let start c stack kv =
     lwt cert = X509.certificate kv cert in
     let conf = Tls.Config.server ~certificates:(`Single cert) () in
     S.listen_tcpv4 stack port (upgrade c conf) ;
