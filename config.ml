@@ -23,10 +23,11 @@ let () =
     "mirage-clock-unix" ;
     "tls" ;
     "tcpip" ;
+    "channel" ;
   ] ;
   add_to_ocamlfind_libraries [
     "mirage-clock-unix" ;
-    "tls"; "tls.mirage";
-    "tcpip.channel";
+    "tls" ; "tls.mirage" ;
+    "tcpip" ; "channel" ;
   ] ;
   register "tls-server" [ server $ default_console $ stack default_console $ disk ]
